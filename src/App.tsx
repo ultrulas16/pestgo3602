@@ -12,6 +12,7 @@ import { SignIn } from './pages/auth/SignIn'
 import { SignUp } from './pages/auth/SignUp'
 import { Dashboard } from './pages/Dashboard'
 import { Customers } from './pages/Customers'
+import { Visits } from './pages/Visits' // Yeni eklenen sayfa
 
 const queryClient = new QueryClient()
 
@@ -79,10 +80,7 @@ function AppRoutes() {
       } />
       <Route path="/visits" element={
         <ProtectedRoute>
-          <div className="p-6">
-            <h1 className="text-2xl font-bold">Ziyaretler</h1>
-            <p className="text-gray-600">Ziyaretler sayfası geliştiriliyor...</p>
-          </div>
+          <Visits />
         </ProtectedRoute>
       } />
       <Route path="/operators" element={
