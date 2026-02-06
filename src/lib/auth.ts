@@ -79,16 +79,26 @@ export const authService = {
   },
 
   async getCurrentUser(): Promise<AuthUser | null> {
-    const { data: { user } } = await supabase.auth.getUser()
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser()
     
-    if (!user) return null
+      if (error) {
+        console.error('Get user error:', error)
+        return null
+      }
+      
+      if (!user) return null
     
-    const profile = await this.getProfile(user.id)
+      const profile = await this.getProfile(user.id)
     
-    return {
-      id: user.id,
-      email: user.email!,
-      profile: profile || undefined
+      return {
+        id: user.id,
+        email: user.email!,
+        profile: profile || undefined
+      }
+    } catch (error) {
+      console.error('getCurrentUser error:', error)
+      return null
     }
   }
 }
