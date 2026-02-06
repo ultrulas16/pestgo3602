@@ -24,31 +24,58 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
-  const [initialized, setInitialized] = useState(false)
 
   useEffect(() => {
     let mounted = true
+    let timeoutId: NodeJS.Timeout
 
     const initializeAuth = async () => {
       try {
-        // Get initial session
-        const { data: { session } } = await supabase.auth.getSession()
+        console.log('🔄 Auth initialization started...')
+        
+        // Set a timeout to prevent infinite loading
+        timeoutId = setTimeout(() => {
+          if (mounted) {
+            console.log('⏰ Auth initialization timeout - setting loading to false')
+            setLoading(false)
+          }
+        }, 5000) // 5 second timeout
+
+        // Get current session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError) {
+          console.error('❌ Session error:', sessionError)
+          throw sessionError
+        }
+
+        console.log('📋 Session check:', session ? 'Found session' : 'No session')
         
         if (session?.user && mounted) {
+          console.log('👤 Getting user profile...')
           const currentUser = await authService.getCurrentUser()
-          setUser(currentUser)
+          
+          if (currentUser && mounted) {
+            console.log('✅ User loaded:', currentUser.email)
+            setUser(currentUser)
+          } else if (mounted) {
+            console.log('❌ No user profile found')
+            setUser(null)
+          }
         } else if (mounted) {
+          console.log('🚫 No session found')
           setUser(null)
         }
       } catch (error) {
-        console.error('Auth initialization error:', error)
+        console.error('❌ Auth initialization error:', error)
         if (mounted) {
           setUser(null)
         }
       } finally {
         if (mounted) {
+          console.log('✅ Auth initialization completed')
+          clearTimeout(timeoutId)
           setLoading(false)
-          setInitialized(true)
         }
       }
     }
@@ -60,20 +87,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async (event, session) => {
         if (!mounted) return
 
+        console.log('🔄 Auth state changed:', event, session ? 'with session' : 'no session')
+
         try {
-          if (session?.user) {
-            const currentUser = await authService.getCurrentUser()
-            setUser(currentUser)
-          } else {
+          if (event === 'SIGNED_OUT' || !session) {
+            console.log('🚪 User signed out')
             setUser(null)
+            setLoading(false)
+            return
+          }
+
+          if (session?.user) {
+            console.log('👤 Getting user after auth change...')
+            const currentUser = await authService.getCurrentUser()
+            if (currentUser && mounted) {
+              console.log('✅ User updated:', currentUser.email)
+              setUser(currentUser)
+            }
           }
         } catch (error) {
-          console.error('Auth state change error:', error)
-          setUser(null)
+          console.error('❌ Auth state change error:', error)
+          if (mounted) {
+            setUser(null)
+          }
         } finally {
-          if (!initialized) {
+          if (mounted) {
             setLoading(false)
-            setInitialized(true)
           }
         }
       }
@@ -81,14 +120,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       mounted = false
+      clearTimeout(timeoutId)
       subscription.unsubscribe()
+      console.log('🧹 Auth context cleanup')
     }
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    const { user: authUser, profile } = await authService.signIn(email, password)
-    if (authUser && profile) {
-      setUser({ id: authUser.id, email: authUser.email!, profile })
+    setLoading(true)
+    try {
+      const { user: authUser, profile } = await authService.signIn(email, password)
+      if (authUser && profile) {
+        setUser({ id: authUser.id, email: authUser.email!, profile })
+      }
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -97,13 +143,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    await authService.signOut()
-    setUser(null)
+    setLoading(true)
+    try {
+      await authService.signOut()
+      setUser(null)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const refreshUser = async () => {
-    const currentUser = await authService.getCurrentUser()
-    setUser(currentUser)
+    try {
+      const currentUser = await authService.getCurrentUser()
+      setUser(currentUser)
+    } catch (error) {
+      console.error('Refresh user error:', error)
+      setUser(null)
+    }
   }
 
   const value = {

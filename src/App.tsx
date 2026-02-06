@@ -25,6 +25,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
         <div className="text-center">
           <LoadingSpinner size="lg" />
           <p className="mt-4 text-gray-600">Yükleniyor...</p>
+          <p className="mt-2 text-sm text-gray-400">
+            Eğer bu ekran uzun süre görünüyorsa, sayfayı yenileyin
+          </p>
         </div>
       </div>
     )
