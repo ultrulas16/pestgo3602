@@ -23,19 +23,15 @@ export function SignIn() {
     try {
       console.log('📝 Form submitted, attempting sign in...')
       await signIn(email, password)
-      console.log('✅ Sign in completed, should redirect now')
+      console.log('✅ Sign in completed, waiting for redirect...')
       toast.success(t('auth.welcomeBack'))
-      
-      // Force navigation after a short delay to ensure state is updated
-      setTimeout(() => {
-        console.log('🔄 Navigating to dashboard...')
-        navigate('/', { replace: true })
-      }, 100)
+      // Navigation will happen automatically via auth state change
     } catch (error: any) {
       console.error('❌ Login error:', error)
       toast.error(error.message || 'Giriş yapılırken bir hata oluştu')
-    } finally {
       setLoading(false)
+    } finally {
+      // Don't set loading false here, let auth context handle it
     }
   }
 

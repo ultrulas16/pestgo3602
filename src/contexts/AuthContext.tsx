@@ -33,34 +33,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log('🔄 Auth initialization started...')
         
-        // Set a timeout to prevent infinite loading
+        // Set a shorter timeout to prevent infinite loading
         timeoutId = setTimeout(() => {
           if (mounted) {
             console.log('⏰ Auth initialization timeout - setting loading to false')
             setLoading(false)
           }
-        }, 5000) // 5 second timeout
+        }, 3000) // 3 second timeout instead of 5
 
         // Get current session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
         
         if (sessionError) {
           console.error('❌ Session error:', sessionError)
-          throw sessionError
+          if (mounted) {
+            setUser(null)
+            setLoading(false)
+          }
+          return
         }
 
         console.log('📋 Session check:', session ? 'Found session' : 'No session')
         
         if (session?.user && mounted) {
           console.log('👤 Getting user profile...')
-          const currentUser = await authService.getCurrentUser()
-          
-          if (currentUser && mounted) {
-            console.log('✅ User loaded:', currentUser.email)
-            setUser(currentUser)
-          } else if (mounted) {
-            console.log('❌ No user profile found')
-            setUser(null)
+          try {
+            const currentUser = await authService.getCurrentUser()
+            
+            if (currentUser && mounted) {
+              console.log('✅ User loaded:', currentUser.email)
+              setUser(currentUser)
+            } else if (mounted) {
+              console.log('❌ No user profile found')
+              setUser(null)
+            }
+          } catch (profileError) {
+            console.error('❌ Profile loading error:', profileError)
+            if (mounted) {
+              setUser(null)
+            }
           }
         } else if (mounted) {
           console.log('🚫 No session found')
@@ -97,21 +108,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return
           }
 
-          if (session?.user) {
-            console.log('👤 Getting user after auth change...')
-            const currentUser = await authService.getCurrentUser()
-            if (currentUser && mounted) {
-              console.log('✅ User updated:', currentUser.email)
-              setUser(currentUser)
+          if (event === 'SIGNED_IN' && session?.user) {
+            console.log('👤 Getting user after sign in...')
+            setLoading(true)
+            
+            try {
+              const currentUser = await authService.getCurrentUser()
+              if (currentUser && mounted) {
+                console.log('✅ User updated after sign in:', currentUser.email)
+                setUser(currentUser)
+              } else if (mounted) {
+                console.log('❌ Failed to get user after sign in')
+                setUser(null)
+              }
+            } catch (error) {
+              console.error('❌ Error getting user after sign in:', error)
+              if (mounted) {
+                setUser(null)
+              }
+            } finally {
+              if (mounted) {
+                setLoading(false)
+              }
             }
           }
         } catch (error) {
           console.error('❌ Auth state change error:', error)
           if (mounted) {
             setUser(null)
-          }
-        } finally {
-          if (mounted) {
             setLoading(false)
           }
         }
@@ -131,19 +155,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔐 Starting sign in process...')
       setLoading(true)
       
-      const { user: authUser, profile } = await authService.signIn(email, password)
-      console.log('✅ Sign in successful:', authUser?.email)
+      const result = await authService.signIn(email, password)
+      console.log('✅ Sign in successful:', result.user?.email)
       
-      if (authUser && profile) {
-        const newUser = { id: authUser.id, email: authUser.email!, profile }
-        setUser(newUser)
-        console.log('✅ User state updated:', newUser.email)
-      }
+      // Don't set user here, let the auth state change handler do it
+      console.log('⏳ Waiting for auth state change...')
+      
     } catch (error) {
       console.error('❌ Sign in error:', error)
-      throw error
-    } finally {
       setLoading(false)
+      throw error
     }
   }
 
