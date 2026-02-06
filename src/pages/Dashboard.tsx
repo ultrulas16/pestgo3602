@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useLanguage } from '../contexts/LanguageContext'
 import { useAuth } from '../contexts/AuthContext'
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { supabase } from '../lib/supabase'
-import { Users, Calendar, ClipboardList, CheckCircle, TrendingUp, AlertCircle } from 'lucide-react'
+import { Users, Calendar, CheckCircle, AlertCircle } from 'lucide-react'
 
 interface DashboardStats {
   totalCustomers: number
@@ -14,7 +14,7 @@ interface DashboardStats {
 }
 
 export function Dashboard() {
-  const { t } = useTranslation()
+  const { t } = useLanguage()
   const { user } = useAuth()
   const [stats, setStats] = useState<DashboardStats>({
     totalCustomers: 0,
@@ -25,16 +25,27 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadDashboardData()
+    // User varsa veriyi çek, yoksa bekleme
+    if (user) {
+        loadDashboardData()
+    } else {
+        // User henüz yoksa loading'i false yap ki sonsuz döngü olmasın
+        // (AuthContext zaten koruyor ama güvenli olsun)
+        setLoading(false)
+    }
   }, [user])
 
   const loadDashboardData = async () => {
-    if (!user?.profile) return
+    // KORUMA: Eğer profil yoksa loading'i kapatıp çık
+    if (!user?.profile) {
+      setLoading(false)
+      return
+    }
 
     try {
+      setLoading(true) // Veri çekmeye başlarken loading aç
       const role = user.profile.role
 
-      // Load stats based on user role
       if (role === 'admin') {
         await loadAdminStats()
       } else if (role === 'company') {
@@ -47,6 +58,7 @@ export function Dashboard() {
     } catch (error) {
       console.error('Error loading dashboard data:', error)
     } finally {
+      // Hata olsa da olmasa da loading'i kapat
       setLoading(false)
     }
   }
