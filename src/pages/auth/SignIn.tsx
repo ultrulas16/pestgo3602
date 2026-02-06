@@ -21,10 +21,18 @@ export function SignIn() {
     setLoading(true)
 
     try {
+      console.log('📝 Form submitted, attempting sign in...')
       await signIn(email, password)
+      console.log('✅ Sign in completed, should redirect now')
       toast.success(t('auth.welcomeBack'))
-      navigate('/')
+      
+      // Force navigation after a short delay to ensure state is updated
+      setTimeout(() => {
+        console.log('🔄 Navigating to dashboard...')
+        navigate('/', { replace: true })
+      }, 100)
     } catch (error: any) {
+      console.error('❌ Login error:', error)
       toast.error(error.message || 'Giriş yapılırken bir hata oluştu')
     } finally {
       setLoading(false)

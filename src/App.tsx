@@ -20,6 +20,8 @@ const queryClient = new QueryClient()
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
 
+  console.log('🛡️ ProtectedRoute check:', { user: user?.email, loading })
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -35,14 +37,18 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
+    console.log('🚫 No user, redirecting to signin')
     return <Navigate to="/auth/signin" replace />
   }
 
+  console.log('✅ User authenticated, rendering protected content')
   return <Layout>{children}</Layout>
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
+
+  console.log('🌐 PublicRoute check:', { user: user?.email, loading })
 
   if (loading) {
     return (
@@ -56,9 +62,11 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (user) {
+    console.log('✅ User already authenticated, redirecting to dashboard')
     return <Navigate to="/" replace />
   }
 
+  console.log('🌐 No user, rendering public content')
   return <>{children}</>
 }
 

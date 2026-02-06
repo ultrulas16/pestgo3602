@@ -127,12 +127,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    setLoading(true)
     try {
+      console.log('🔐 Starting sign in process...')
+      setLoading(true)
+      
       const { user: authUser, profile } = await authService.signIn(email, password)
+      console.log('✅ Sign in successful:', authUser?.email)
+      
       if (authUser && profile) {
-        setUser({ id: authUser.id, email: authUser.email!, profile })
+        const newUser = { id: authUser.id, email: authUser.email!, profile }
+        setUser(newUser)
+        console.log('✅ User state updated:', newUser.email)
       }
+    } catch (error) {
+      console.error('❌ Sign in error:', error)
+      throw error
     } finally {
       setLoading(false)
     }

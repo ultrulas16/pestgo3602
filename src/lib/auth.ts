@@ -25,10 +25,16 @@ export const authService = {
       if (data.user) {
         console.log('✅ User signed in, getting profile...')
         const profile = await this.getProfile(data.user.id)
+        
+        if (!profile) {
+          throw new Error('Profil bulunamadı')
+        }
+        
+        console.log('✅ Profile loaded:', profile.email)
         return { user: data.user, profile }
       }
       
-      return { user: null, profile: null }
+      throw new Error('Giriş başarısız')
     } catch (error) {
       console.error('❌ Sign in service error:', error)
       throw error
