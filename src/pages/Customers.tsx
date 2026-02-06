@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useLanguage } from '../contexts/LanguageContext'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
@@ -11,7 +11,7 @@ import { Plus, Search, CreditCard as Edit, Trash2, MapPin } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export function Customers() {
-  const { t } = useLanguage()
+  const { t } = useTranslation()
   const { user } = useAuth()
   const [customers, setCustomers] = useState<(Customer & { profile?: Profile })[]>([])
   const [loading, setLoading] = useState(true)

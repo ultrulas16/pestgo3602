@@ -1,7 +1,7 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { Hop as Home, Users, Calendar, UserCheck, FileText, Settings, Building2, MapPin, Wrench, Package, Warehouse, ClipboardList, LogOut } from 'lucide-react'
-import { useLanguage } from '../../contexts/LanguageContext'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../contexts/AuthContext'
 import { clsx } from 'clsx'
 
@@ -11,7 +11,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { t } = useLanguage()
+  const { t } = useTranslation()
   const { user, signOut } = useAuth()
 
   const getNavigationItems = () => {

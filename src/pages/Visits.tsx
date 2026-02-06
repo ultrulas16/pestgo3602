@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useLanguage } from '../contexts/LanguageContext'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
@@ -37,7 +37,7 @@ interface Visit {
 }
 
 export function Visits() {
-  const { t } = useLanguage()
+  const { t } = useTranslation()
   const { user } = useAuth()
   
   // State yönetimi

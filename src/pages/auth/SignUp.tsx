@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { useLanguage } from '../../contexts/LanguageContext'
+import { useTranslation } from 'react-i18next'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Select } from '../../components/ui/Select'
@@ -19,7 +19,7 @@ export function SignUp() {
   })
   const [loading, setLoading] = useState(false)
   const { signUp } = useAuth()
-  const { t, language, setLanguage } = useLanguage()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,7 +51,8 @@ export function SignUp() {
   }
 
   const toggleLanguage = () => {
-    setLanguage(language === 'tr' ? 'en' : 'tr')
+    const newLang = i18n.language === 'tr' ? 'en' : 'tr'
+    i18n.changeLanguage(newLang)
   }
 
   return (
@@ -72,7 +73,7 @@ export function SignUp() {
               className="flex items-center space-x-2"
             >
               <Globe className="h-4 w-4" />
-              <span className="uppercase">{language}</span>
+              <span className="uppercase">{i18n.language}</span>
             </Button>
           </div>
 

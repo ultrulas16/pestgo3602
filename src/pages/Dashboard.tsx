@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useLanguage } from '../contexts/LanguageContext'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
@@ -14,7 +14,7 @@ interface DashboardStats {
 }
 
 export function Dashboard() {
-  const { t } = useLanguage()
+  const { t } = useTranslation()
   const { user } = useAuth()
   const [stats, setStats] = useState<DashboardStats>({
     totalCustomers: 0,

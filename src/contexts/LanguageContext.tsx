@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
-import { i18n, type Language } from '../lib/i18n'
+import React, { createContext, useContext } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface LanguageContextType {
-  language: Language
-  setLanguage: (language: Language) => void
+  language: string
+  setLanguage: (language: string) => void
   t: (key: string) => string
 }
 
@@ -18,22 +18,14 @@ export function useLanguage() {
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(i18n.getLanguage())
+  const { t, i18n } = useTranslation()
 
-  const setLanguage = (newLanguage: Language) => {
-    i18n.setLanguage(newLanguage)
-    setLanguageState(newLanguage)
+  const setLanguage = (language: string) => {
+    i18n.changeLanguage(language)
   }
 
-  const t = (key: string) => i18n.t(key)
-
-  useEffect(() => {
-    // Update document language
-    document.documentElement.lang = language
-  }, [language])
-
   const value = {
-    language,
+    language: i18n.language,
     setLanguage,
     t
   }
